@@ -24,6 +24,63 @@ ESCALATION_TERMS = (
     "经理", "主管", "人工客服", "转人工",
 )
 
+
+# ---------- 情绪识别 + 兜底话术 ----------
+# 知识库未命中时，根据客户语气匹配不同承接话术
+EMOTION_RULES: list[tuple[str, tuple[str, ...]]] = [
+    ("angry", (
+        "气死", "什么垃圾", "什么玩意", "破玩意", "骗子", "差劲", "太差",
+        "再也不买", "什么态度", "服务差", "差评", "曝光", "举报",
+        "退一赔三", "赔我", "什么破", "火大", "受不了",
+    )),
+    ("anxious", (
+        "快点", "尽快", "加急", "急死", "着急", "赶时间", "马上",
+        "来不及", "怎么办", "救命", "今天必须", "今天要用", "航班",
+        "出差", "急用", "怎么还没",
+    )),
+    ("disappointed", (
+        "失望", "不值", "浪费钱", "不好用", "难用", "垃圾", "后悔",
+        "根本不是", "骗人", "虚假宣传", "差劲", "再也",
+    )),
+]
+
+FALLBACK_REPLIES: dict[str, list[str]] = {
+    "angry": [
+        "非常抱歉让您这么生气，我已经第一时间为您升级到客服主管加急处理，10 分钟内会有专人电话联系您，请稍等。",
+        "真的很抱歉给您带来这么糟糕的体验，我已为您转接人工客服主管并标记最高优先级，会第一时间回电处理。",
+        "对不起让您受委屈了，我立刻为您接通人工客服，主管正在排队接入，请您稍等片刻。",
+    ],
+    "anxious": [
+        "别着急，我马上为您转接人工客服并标记加急，会优先处理您的问题，请稍等。",
+        "理解您赶时间的心情，已为您登记加急，人工客服正在快速接入，请稍等。",
+        "收到，已为您跳过排队直接转接人工，请稍等片刻。",
+    ],
+    "disappointed": [
+        "抱歉没能一次帮您解决，我已为您转接人工客服，会有专人跟进到底。",
+        "抱歉让您失望了，已为您登记并转接人工，会给您一个明确的处理方案。",
+        "理解您的感受，我马上为您转人工客服跟进，请稍等。",
+    ],
+    "neutral": [
+        "已为您申请人工客服服务，请稍等。",
+        "这个问题我帮您转接人工客服处理，请稍等片刻。",
+        "好的，已为您登记并转接人工客服，稍后会有专人回复您。",
+        "收到，我马上为您接通人工客服，请稍等。",
+    ],
+}
+
+
+def _detect_emotion(text: str) -> str:
+    for emotion, keywords in EMOTION_RULES:
+        if any(k in text for k in keywords):
+            return emotion
+    return "neutral"
+
+
+def _fallback_reply(message: str) -> str:
+    emotion = _detect_emotion(message)
+    import random
+    return random.choice(FALLBACK_REPLIES[emotion])
+
 # 售后意图关键词
 ORDER_TERMS = (
     "订单", "我的订单", "查到", "发货", "物流", "快递", "运单", "到哪",
@@ -206,8 +263,9 @@ def answer_message_rule_based(message: str, platform: str = "novatech") -> dict:
         "tool_result": rag.get("tool_result"),
         "sources": rag["sources"],
     }
-    # RAG 未命中 → 自动建工单转人工
+    # RAG 未命中 → 按情绪匹配兜底话术 + 自动建工单转人工
     if not rag.get("matched", True):
+        out["answer"] = _fallback_reply(message)
         out["ticket"] = create_ticket(message)
     else:
         # RAG 命中但问题属于售后/履约类（非纯售前咨询），自动建工单让人工跟进

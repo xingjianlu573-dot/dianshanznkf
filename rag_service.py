@@ -181,9 +181,10 @@ def _local_retrieve(message: str, top_k: int = 3) -> dict:
     scored = scored[:top_k]
 
     sources = []
-    if not scored or scored[0][0] <= 0:
+    # 分数阈值：实测好匹配 55+，弱噪声 7-16，25 分以下视为未命中走人工
+    if not scored or scored[0][0] < 25:
         return {
-            "answer": "抱歉，我在客服知识库里没有找到完全匹配的答案。已为您生成工单，人工客服将跟进。",
+            "answer": "",  # 由 agent_router 按情绪匹配兜底话术
             "sources": [],
             "matched": False,
         }
