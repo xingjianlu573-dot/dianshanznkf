@@ -28,6 +28,8 @@ ESCALATION_TERMS = (
 ORDER_TERMS = (
     "订单", "我的订单", "查到", "发货", "物流", "快递", "运单", "到哪",
     "在哪", "送到", "签收", "没收到", "没到货",
+    "改地址", "修改地址", "换地址", "取消订单", "我要取消",
+    "催发货", "怎么还不发", "什么时候发",
 )
 REFUND_TERMS = (
     "退款", "退货", "退钱", "不想要了", "拍错", "多拍", "7天无理由", "七天无理由",
@@ -207,6 +209,12 @@ def answer_message_rule_based(message: str, platform: str = "novatech") -> dict:
     # RAG 未命中 → 自动建工单转人工
     if not rag.get("matched", True):
         out["ticket"] = create_ticket(message)
+    else:
+        # RAG 命中但问题属于售后/履约类（非纯售前咨询），自动建工单让人工跟进
+        from ticket import classify as classify_ticket
+        category, priority, _ = classify_ticket(message)
+        if category not in ("售前咨询", "其他咨询"):
+            out["ticket"] = create_ticket(message)
     return out
 
 
