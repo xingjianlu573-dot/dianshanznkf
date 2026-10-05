@@ -15,6 +15,20 @@
 **国产模型一键切换**：`MODEL_PROVIDER=deepseek|qwen|zhipu|kimi|openai`，默认 `local` 本地 BM25 零外部依赖。
 国内部署详见 [README_CN.md](./README_CN.md)。
 
+## 在线体验
+
+启动后两个页面：
+
+| 页面 | 地址 | 作用 |
+|---|---|---|
+| 📊 **项目介绍页** | `/showcase` | 作品集展示：架构、能力、场景、一键启动 |
+| 💬 **客服工作台** | `/` | 实际功能演示：售前 / 售后 / 工单全流程 |
+
+![展示页](docs/screenshots/05-showcase-page.png)
+![售前 RAG 对话](docs/screenshots/02-presale-rag.png)
+![订单物流查询](docs/screenshots/03-order-logistics.png)
+![投诉转人工工单](docs/screenshots/04-escalation-ticket.png)
+
 
 
 ***
