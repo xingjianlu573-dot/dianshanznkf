@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Customer Service Platform · 星澜数码智能客服</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">N</div>
+        <div>
+          <p class="brand-name">NovaTech 星澜数码</p>
+          <p class="brand-sub">AI Customer Service Platform</p>
+        </div>
+      </div>
+
+      <div class="side-block">
+        <p class="side-title">快捷场景</p>
+        <div class="quick" id="prompts"></div>
+      </div>
+
+      <div class="side-block">
+        <p class="side-title">演示订单号</p>
+        <ul class="order-list">
+          <li><code>SO20260912001</code> <span>· 耳机 / 运输中</span></li>
+          <li><code>SO20260920002</code> <span>· 手表 / 已签收</span></li>
+          <li><code>SO20260930004</code> <span>· 耳麦 / 退款审核中</span></li>
+        </ul>
+      </div>
+
+      <div class="side-block">
+        <p class="side-title">运行模式</p>
+        <p class="side-meta" id="mode-badge">本地规则路由 + BM25 RAG</p>
+      </div>
+    </aside>
+
+    <main class="chat-area">
+      <header class="chat-header">
+        <div>
+          <h1>智能客服工作台</h1>
+          <p class="sub">售前咨询 · 售后支持 · 智能工单</p>
+        </div>
+        <div class="header-stats" id="header-stats"></div>
+      </header>
+
+      <section class="chat" id="chat" aria-live="polite"></section>
+      <p class="error" id="error"></p>
+
+      <form class="composer" id="composer">
+        <input id="message-input" placeholder="请输入您的问题，例如：Air100 和 Studio200 怎么选？" />
+        <button type="submit">发送</button>
+      </form>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

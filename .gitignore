@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# Runtime generated knowledge
+generated_knowledge/
+data/store_knowledge.md
+runtime_knowledge/
+
+# Editor files
+.DS_Store
+.vscode/
+
+# Local logs
+server.log
+server.err
+*.log

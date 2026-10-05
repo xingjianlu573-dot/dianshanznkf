@@ -1,0 +1,4 @@
+[project]
+name = "ecommerce-rag-agent"
+version = "0.2.0"
+requires-python = ">=3.10"
