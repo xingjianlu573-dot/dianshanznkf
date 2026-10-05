@@ -48,13 +48,19 @@ def classify_intent(message: str) -> str:
     if any(term in text for term in ESCALATION_TERMS):
         return "ESCALATE"
 
-    if any(term in text for term in REFUND_TERMS):
-        return "REFUND"
-
-    # 只有消息里带订单号，或明确说"我的订单/我的包裹"时，才走订单查询接口；
-    # 否则像"多久发货/运费多少"这类通用政策问题走 RAG。
+    # 退款类问题：只有当消息里带订单号，或明确说"我的订单/我买的那个"时，才真的走退款流程；
+    # 否则像"7天无理由""退款多久到账"是在问售后政策，走 RAG。
     has_order_id = bool(extract_order_id(message))
-    if has_order_id or any(term in text for term in ("我的订单", "我的包裹", "我的快递", "我买的", "我拍的")):
+    own_order_hint = any(term in text for term in (
+        "我的订单", "我的包裹", "我的快递", "我买的", "我拍的", "刚买的", "刚收到",
+    ))
+    if any(term in text for term in REFUND_TERMS):
+        if has_order_id or own_order_hint:
+            return "REFUND"
+        return "RAG"
+
+    # 订单/物流类：必须带订单号或指向自己的订单
+    if has_order_id or own_order_hint:
         if any(term in text for term in ORDER_TERMS):
             return "ORDER_STATUS"
 

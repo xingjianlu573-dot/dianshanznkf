@@ -1,24 +1,35 @@
 # AI Customer Service Platform
 
-> 企业级电商智能客服 Agent · 基于 RAG + Function Calling + Workflow 编排
+> 企业级电商智能客服 Agent・基于 RAG + Function Calling + Workflow 编排
+> 改造自开源项目 
 >
-> 改造自开源项目 [lingyun1010/ecommerce-rag-agent](https://github.com/lingyun1010/ecommerce-rag-agent)，模拟一家销售消费电子的企业「星澜数码 NovaTech」的真实客服系统。
+> [lingyun1010/ecommerce-rag-agent](https://github.com/lingyun1010/ecommerce-rag-agent)
+>
+> ，模拟一家销售消费电子的企业「星澜数码 NovaTech」的真实客服系统。
 
----
+
+
+***
 
 ## 业务定位
 
 一家销售消费电子（耳机 / 手表 / 键盘 / 充电器）的直营电商，客服需要同时覆盖：
 
-| 场景 | 客户问题 | 系统处理方式 |
-|---|---|---|
-| **售前咨询** | 产品参数、型号对比、配件、使用场景 | RAG 检索产品手册 + FAQ，命中商品时附带商品卡片 |
-| **售后支持** | 订单状态、物流轨迹、退款流程 | 调用模拟订单/物流/退款业务接口 |
-| **智能工单** | 投诉、升级人工、RAG 未命中 | 自动生成问题分类 / 优先级 / 处理建议 |
 
----
+
+| 场景       | 客户问题              | 系统处理方式                       |
+| -------- | ----------------- | ---------------------------- |
+| **售前咨询** | 产品参数、型号对比、配件、使用场景 | RAG 检索产品手册 + FAQ，命中商品时附带商品卡片 |
+| **售后支持** | 订单状态、物流轨迹、退款流程    | 调用模拟订单 / 物流 / 退款业务接口         |
+| **智能工单** | 投诉、升级人工、RAG 未命中   | 自动生成问题分类 / 优先级 / 处理建议        |
+
+
+
+***
 
 ## 业务流程图
+
+
 
 ```mermaid
 flowchart TD
@@ -47,9 +58,13 @@ flowchart TD
     A3 --> OUT
 ```
 
----
+
+
+***
 
 ## 系统架构图
+
+
 
 ```mermaid
 flowchart LR
@@ -88,22 +103,30 @@ flowchart LR
     TKT --> KB
 ```
 
----
+
+
+***
 
 ## 技术栈
 
-| 层 | 技术 | 说明 |
-|---|---|---|
-| **Agent** | 规则路由 + OpenAI Function Calling 双路 | 无 Key 时走规则兜底；有 Key 时切到 `openai_tool_router.py` 走 tool calling |
-| **RAG** | LlamaIndex（生产）/ 自研 BM25（演示） | 语料为产品手册 + FAQ + 售后政策；中文按 bigram 分词 |
-| **API** | FastAPI + Uvicorn | RESTful 接口，CORS 开放前端域 |
-| **Workflow** | 状态机路由 | `PRE_SALE → RAG` / `ORDER_STATUS → commerce_api` / `REFUND → refund_state_machine` / `ESCALATE → ticket(P0)` |
-| **前端** | 原生 HTML/CSS/JS | 无框架，侧边栏工作台布局 |
-| **数据** | 纯 Python dataclass 模拟 | 商品库 / 订单库 / 物流轨迹 / 退款状态全部内存化 |
 
----
+
+| 层            | 技术                                | 说明                                                                                                           |
+| ------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **Agent**    | 规则路由 + OpenAI Function Calling 双路 | 无 Key 时走规则兜底；有 Key 时切到 `openai_tool_router.py` 走 tool calling                                                |
+| **RAG**      | LlamaIndex（生产）/ 自研 BM25（演示）       | 语料为产品手册 + FAQ + 售后政策；中文按 bigram 分词                                                                           |
+| **API**      | FastAPI + Uvicorn                 | RESTful 接口，CORS 开放前端域                                                                                        |
+| **Workflow** | 状态机路由                             | `PRE_SALE → RAG` / `ORDER_STATUS → commerce_api` / `REFUND → refund_state_machine` / `ESCALATE → ticket(P0)` |
+| **前端**       | 原生 HTML/CSS/JS                    | 无框架，侧边栏工作台布局                                                                                                 |
+| **数据**       | 纯 Python dataclass 模拟             | 商品库 / 订单库 / 物流轨迹 / 退款状态全部内存化                                                                                 |
+
+
+
+***
 
 ## 目录结构
+
+
 
 ```
 ecommerce-rag-agent/
@@ -125,53 +148,73 @@ ecommerce-rag-agent/
 └── docs/screenshots/     # 运行截图
 ```
 
----
+
+
+***
 
 ## 快速启动
 
 ### 1. 安装依赖
 
-```bash
+
+
+```
 pip install -r requirements.txt
 ```
 
-> 不配置 `OPENAI_API_KEY` 时，自动使用「规则路由 + BM25 RAG」本地模式，零外网依赖。
+> 不配置 
+>
+> `OPENAI_API_KEY`
+>
+>  时，自动使用「规则路由 + BM25 RAG」本地模式，零外网依赖。
 > 配置后切换为 LlamaIndex + GPT-4o-mini 生产路径。
 
 ### 2. 启动后端
 
-```bash
+
+
+```
 # 可选：复制 .env.example 为 .env 并填 OPENAI_API_KEY
 uvicorn api:app --port 8010 --reload
 ```
 
 ### 3. 启动前端
 
-```bash
+
+
+```
 cd frontend
 python -m http.server 5173
 ```
 
-浏览器打开 <http://127.0.0.1:5173>。
+浏览器打开 [http://127.0.0.1:5173](http://127.0.0.1:5173)。
 
----
+
+
+***
 
 ## 演示场景
 
-| 你问 | 路由 | 看到什么 |
-|---|---|---|
-| Air100 和 Studio200 怎么选？ | `RAG` | faq.md 答案 + 3 条知识库引用 |
-| Watch30 防水吗？支持 iPhone 吗？ | `PRE_SALE` | products.md 参数 + 商品卡片 |
-| 我的订单 SO20260912001 物流到哪了？ | `ORDER_STATUS` | 订单状态 + 顺丰单号 + 3 条轨迹 |
-| 我想退货，订单 SO20260930004 怎么退款？ | `REFUND` | 退款受理 / 已在审核中等状态机校验 |
-| 你们一般多久发货？运费多少？ | `RAG` | faq.md 物流政策答案 |
-| 这质量也太差了，我要投诉，转人工！ | `ESCALATE` | 人工升级文案 + **P0 紧急工单卡片** |
 
----
+
+| 你问                          | 路由             | 看到什么                   |
+| --------------------------- | -------------- | ---------------------- |
+| Air100 和 Studio200 怎么选？     | `RAG`          | faq.md 答案 + 3 条知识库引用   |
+| Watch30 防水吗？支持 iPhone 吗？    | `PRE_SALE`     | products.md 参数 + 商品卡片  |
+| 我的订单 SO20260912001 物流到哪了？   | `ORDER_STATUS` | 订单状态 + 顺丰单号 + 3 条轨迹    |
+| 我想退货，订单 SO20260930004 怎么退款？ | `REFUND`       | 退款受理 / 已在审核中等状态机校验     |
+| 你们一般多久发货？运费多少？              | `RAG`          | faq.md 物流政策答案          |
+| 这质量也太差了，我要投诉，转人工！           | `ESCALATE`     | 人工升级文案 + **P0 紧急工单卡片** |
+
+
+
+***
 
 ## 核心 API
 
-```bash
+
+
+```
 # 健康检查
 curl http://127.0.0.1:8010/health
 
@@ -197,33 +240,52 @@ curl -X POST http://127.0.0.1:8010/tickets \
   -d '{"message":"耳机连不上蓝牙","order_id":"SO20260912001"}'
 ```
 
----
+
+
+***
 
 ## 运行截图
 
-| 初始工作台 | 售前 RAG 答复 |
-|---|---|
+
+
+| 初始工作台                                            | 售前 RAG 答复                                       |
+| ------------------------------------------------ | ----------------------------------------------- |
 | ![initial](docs/screenshots/01-initial-chat.png) | ![presale](docs/screenshots/02-presale-rag.png) |
 
-| 订单物流卡片 | 智能工单（P0 升级） |
-|---|---|
+
+
+| 订单物流卡片                                            | 智能工单（P0 升级）                                          |
+| ------------------------------------------------- | ---------------------------------------------------- |
 | ![order](docs/screenshots/03-order-logistics.png) | ![ticket](docs/screenshots/04-escalation-ticket.png) |
 
----
+
+
+***
 
 ## 设计取舍：为什么 API + RAG + Agent 要拆开
 
-- **精确业务数据走 API**：订单状态、物流轨迹、退款金额、库存、价格——这些是动态、强一致的事实，必须从业务库读，不能让 LLM 编。
-- **解释性知识走 RAG**：产品手册、FAQ、售后政策——这些是文本，会更新，需要带引用可追溯。
-- **路由走 Agent**：同一句话「我想退钱」可能是售前问政策、也可能是售后真要退某单，Agent 根据是否带订单号、是否有情绪词来决定走哪条路。
-- **不确定的问题自动转工单**：RAG 没命中 / 用户提投诉 / 情绪激烈，立即生成结构化工单交给人。
+
+
+* **精确业务数据走 API**：订单状态、物流轨迹、退款金额、库存、价格 —— 这些是动态、强一致的事实，必须从业务库读，不能让 LLM 编。
+
+* **解释性知识走 RAG**：产品手册、FAQ、售后政策 —— 这些是文本，会更新，需要带引用可追溯。
+
+* **路由走 Agent**：同一句话「我想退钱」可能是售前问政策、也可能是售后真要退某单，Agent 根据是否带订单号、是否有情绪词来决定走哪条路。
+
+* **不确定的问题自动转工单**：RAG 没命中 / 用户提投诉 / 情绪激烈，立即生成结构化工单交给人。
 
 这就是一个最小可用、但流程完整的企业客服自动化闭环。
 
----
+
+
+***
 
 ## Credits
 
-- 基础架构：[lingyun1010/ecommerce-rag-agent](https://github.com/lingyun1010/ecommerce-rag-agent)
-- RAG 框架：[LlamaIndex](https://github.com/run-llama/llama_index)
-- Web 框架：[FastAPI](https://fastapi.tiangolo.com/)
+
+
+* 基础架构：[lingyun1010/ecommerce-rag-agent](https://github.com/lingyun1010/ecommerce-rag-agent)
+
+* RAG 框架：[LlamaIndex](https://github.com/run-llama/llama_index)
+
+* Web 框架：[FastAPI](https://fastapi.tiangolo.com/)

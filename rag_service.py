@@ -79,7 +79,8 @@ def _tokenize(text: str) -> list[str]:
 
 @lru_cache(maxsize=1)
 def _local_index():
-    """返回 (chunks, df, avgdl)。chunks: list of {file, text, tokens: Counter}。"""
+    """按 ## 标题切分；每个标题下的内容是一个 chunk。
+    返回 (chunks, df, avgdl)。"""
     from collections import Counter
 
     chunks = []
@@ -87,10 +88,16 @@ def _local_index():
     for path_str in get_knowledge_files():
         path = Path(path_str)
         text = path.read_text(encoding="utf-8")
-        # 按段落切分（空行）
-        for block in re.split(r"\n\s*\n", text):
+
+        # 按 ## 或 ### 标题切分（每个 Q&A / 每个政策小节独立成 chunk）
+        if re.search(r"^##{1,3}\s", text, re.MULTILINE):
+            blocks = _split_by_heading(text)
+        else:
+            blocks = [b.strip() for b in re.split(r"\n\s*\n", text) if b.strip()]
+
+        for block in blocks:
             block = block.strip()
-            if len(block) < 20:
+            if len(block) < 15:
                 continue
             tokens = _tokenize(block)
             if not tokens:
@@ -105,6 +112,36 @@ def _local_index():
 
     avgdl = sum(len(c["tokens"]) for c in chunks) / max(len(chunks), 1)
     return chunks, df, avgdl
+
+
+def _split_by_heading(text: str) -> list[str]:
+    """按 ## 或 ### 标题切分，每个标题块独立成 chunk；丢掉文件级 # 标题。"""
+    parts = re.split(r"(?=^#{2,3}\s)", text, flags=re.MULTILINE)
+    out = []
+    for p in parts:
+        p = p.strip()
+        if re.match(r"^#{2,3}\s", p):
+            out.append(p)
+    return out
+
+
+# 产品名 → 别名，用于 query 里提到产品时给 chunk 加权
+PRODUCT_ALIASES = {
+    "air100": ["air100", "air 100", "耳机 air", "蓝牙耳机", "tws"],
+    "studio200": ["studio200", "studio 200", "头戴", "耳麦"],
+    "watch30": ["watch30", "watch 30", "手表", "智能手表"],
+    "key87": ["key87", "key 87", "键盘", "机械键盘"],
+    "gaan65": ["gaan65", "65w", "充电器", "氮化镓"],
+}
+
+
+def _detect_products(query: str) -> set[str]:
+    q = query.lower()
+    hit = set()
+    for canon, aliases in PRODUCT_ALIASES.items():
+        if any(a in q for a in aliases):
+            hit.add(canon)
+    return hit
 
 
 def _bm25_score(query: str, chunk: dict, df: Counter, avgdl: float, k1=1.5, b=0.75) -> float:
@@ -125,11 +162,23 @@ def _bm25_score(query: str, chunk: dict, df: Counter, avgdl: float, k1=1.5, b=0.
 
 def _local_retrieve(message: str, top_k: int = 3) -> dict:
     chunks, df, avgdl = _local_index()
-    scored = sorted(
-        ((_bm25_score(message, c, df, avgdl), c) for c in chunks),
-        key=lambda x: x[0],
-        reverse=True,
-    )[:top_k]
+    query_products = _detect_products(message)
+
+    scored = []
+    for c in chunks:
+        s = _bm25_score(message, c, df, avgdl)
+        # 产品名命中加权：query 提到某产品，chunk 也提到 → ×1.6
+        if query_products:
+            blob = c["text"].lower()
+            for p in query_products:
+                aliases = PRODUCT_ALIASES[p]
+                if any(a in blob for a in aliases):
+                    s *= 1.6
+                    break
+        scored.append((s, c))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    scored = scored[:top_k]
 
     sources = []
     if not scored or scored[0][0] <= 0:
