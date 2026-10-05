@@ -17,14 +17,14 @@
 
 ## 在线体验
 
-启动后两个页面：
+启动后访问以下两个页面（默认端口 8010，部署到公网后替换成你的域名）：
 
-| 页面 | 地址 | 作用 |
+| 页面 | 链接 | 作用 |
 |---|---|---|
-| 📊 **项目介绍页** | `/showcase` | 作品集展示：架构、能力、场景、一键启动 |
-| 💬 **客服工作台** | `/` | 实际功能演示：售前 / 售后 / 工单全流程 |
+| 💬 **客服工作台** | [http://localhost:8010/](http://localhost:8010/) | 实际功能演示：售前 / 售后 / 工单全流程，点侧边栏按钮一键体验 |
+| 📊 **项目介绍页** | [http://localhost:8010/showcase](http://localhost:8010/showcase) | 作品集展示：架构图、能力卡片、业务场景、一键启动命令 |
 
-![展示页](docs/screenshots/05-showcase-page.png)
+![客服工作台](docs/screenshots/06-workbench-presale.png)
 ![售前 RAG 对话](docs/screenshots/02-presale-rag.png)
 ![订单物流查询](docs/screenshots/03-order-logistics.png)
 ![投诉转人工工单](docs/screenshots/04-escalation-ticket.png)
