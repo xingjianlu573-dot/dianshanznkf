@@ -109,12 +109,5 @@ def refresh_knowledge() -> dict:
 # ---------------------------------------------------------------------------
 _FRONTEND_DIR = Path(__file__).parent / "frontend"
 if _FRONTEND_DIR.exists():
-    app.mount("/static", StaticFiles(directory=_FRONTEND_DIR), name="static")
-
-    @app.get("/", include_in_schema=False)
-    def index() -> FileResponse:
-        return FileResponse(_FRONTEND_DIR / "index.html")
-
-    @app.get("/showcase", include_in_schema=False)
-    def showcase() -> FileResponse:
-        return FileResponse(_FRONTEND_DIR / "showcase.html")
+    # 把前端目录挂到根路径（API 路由已在上方注册，优先匹配）
+    app.mount("/", StaticFiles(directory=_FRONTEND_DIR, html=True), name="static")
