@@ -114,3 +114,7 @@ if _FRONTEND_DIR.exists():
     @app.get("/", include_in_schema=False)
     def index() -> FileResponse:
         return FileResponse(_FRONTEND_DIR / "index.html")
+
+    @app.get("/showcase", include_in_schema=False)
+    def showcase() -> FileResponse:
+        return FileResponse(_FRONTEND_DIR / "showcase.html")
