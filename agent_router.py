@@ -277,8 +277,13 @@ def answer_message_rule_based(message: str, platform: str = "novatech") -> dict:
 
 
 def should_use_openai_tool_router() -> bool:
-    mode = os.getenv("AGENT_ROUTER", "openai").lower()
-    return mode == "openai" and bool(os.getenv("OPENAI_API_KEY"))
+    """当 MODEL_PROVIDER 不是 local 且配置了对应 API key 时，启用 LLM tool calling。"""
+    from llm_provider import get_config
+    cfg = get_config()
+    mode = os.getenv("AGENT_ROUTER", "auto").lower()
+    if mode == "rules":
+        return False
+    return cfg.available
 
 
 def answer_message(message: str, platform: str = "novatech") -> dict:

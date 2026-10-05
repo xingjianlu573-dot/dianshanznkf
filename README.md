@@ -1,11 +1,19 @@
 # AI Customer Service Platform
 
 > 企业级电商智能客服 Agent・基于 RAG + Function Calling + Workflow 编排
-> 改造自开源项目 
+> 改造自开源项目
 >
 > [lingyun1010/ecommerce-rag-agent](https://github.com/lingyun1010/ecommerce-rag-agent)
 >
 > ，模拟一家销售消费电子的企业「星澜数码 NovaTech」的真实客服系统。
+
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue)]()
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)]()
+[![LLM](https://img.shields.io/badge/LLM-OpenAI%2FDeepSeek%2FQwen%2FGLM%2FKimi-orange)]()
+[![China Ready](https://img.shields.io/badge/国内部署-开箱即用-success)]()
+
+**国产模型一键切换**：`MODEL_PROVIDER=deepseek|qwen|zhipu|kimi|openai`，默认 `local` 本地 BM25 零外部依赖。
+国内部署详见 [README_CN.md](./README_CN.md)。
 
 
 
@@ -113,7 +121,7 @@ flowchart LR
 
 | 层            | 技术                                | 说明                                                                                                           |
 | ------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **Agent**    | 规则路由 + OpenAI Function Calling 双路 | 无 Key 时走规则兜底；有 Key 时切到 `openai_tool_router.py` 走 tool calling                                                |
+| **Agent**    | 规则路由 + LLM Function Calling 双路 | `llm_provider.py` 统一适配 OpenAI / DeepSeek / 通义 / 智谱 / Kimi；无 Key 时走规则兜底 |
 | **RAG**      | LlamaIndex（生产）/ 自研 BM25（演示）       | 语料为产品手册 + FAQ + 售后政策；中文按 bigram 分词                                                                           |
 | **API**      | FastAPI + Uvicorn                 | RESTful 接口，CORS 开放前端域                                                                                        |
 | **Workflow** | 状态机路由                             | `PRE_SALE → RAG` / `ORDER_STATUS → commerce_api` / `REFUND → refund_state_machine` / `ESCALATE → ticket(P0)` |
@@ -154,40 +162,34 @@ ecommerce-rag-agent/
 
 ## 快速启动
 
-### 1. 安装依赖
+### 方式 A：本地一键启动（推荐）
 
-
-
+```bash
+pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+uvicorn api:app --host 0.0.0.0 --port 8010
 ```
-pip install -r requirements.txt
+
+浏览器直接打开 **http://localhost:8010** ，前后端一体。
+
+> 默认 `MODEL_PROVIDER=local`，走规则路由 + BM25 RAG，零外网依赖。
+> 想接国产大模型，复制 `.env.example` 为 `.env`，填一个 `DEEPSEEK_API_KEY`（或通义/智谱/Kimi）即可，详见 [README_CN.md](./README_CN.md)。
+
+### 方式 B：Docker 启动
+
+```bash
+docker compose up -d --build
 ```
 
-> 不配置 
->
-> `OPENAI_API_KEY`
->
->  时，自动使用「规则路由 + BM25 RAG」本地模式，零外网依赖。
-> 配置后切换为 LlamaIndex + GPT-4o-mini 生产路径。
+访问 http://localhost:8010 。
 
-### 2. 启动后端
+### 方式 C：开发模式（前后端分离）
 
-
-
-```
-# 可选：复制 .env.example 为 .env 并填 OPENAI_API_KEY
+```bash
 uvicorn api:app --port 8010 --reload
+cd frontend && python -m http.server 5173
 ```
 
-### 3. 启动前端
-
-
-
-```
-cd frontend
-python -m http.server 5173
-```
-
-浏览器打开 [http://127.0.0.1:5173](http://127.0.0.1:5173)。
+访问 http://localhost:5173 。
 
 
 

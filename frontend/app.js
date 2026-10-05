@@ -1,4 +1,5 @@
-const API_URL = window.AGENT_API_URL || 'http://127.0.0.1:8010';
+// 默认同源（单端口部署）；开发模式可在 index.html 设 window.AGENT_API_URL
+const API_URL = window.AGENT_API_URL || '';
 
 const demoPrompts = [
   'Air100 和 Studio200 怎么选？',

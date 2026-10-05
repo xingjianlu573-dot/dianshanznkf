@@ -3,9 +3,10 @@ import json
 from openai import OpenAI
 
 from commerce_api import escalate_to_human, get_listing_count, get_order
+from llm_provider import get_config, get_openai_client
 
 
-TOOL_MODEL = "gpt-4o-mini"
+TOOL_MODEL = get_config().chat_model
 
 TOOLS = [
     {
@@ -130,7 +131,11 @@ def _format_tool_answer(client: OpenAI, messages: list, tool_result: dict) -> st
 
 
 def answer_message_with_tools(message: str, platform: str = "etsy") -> dict:
-    client = OpenAI()
+    client = get_openai_client()
+    if client is None:
+        # 未配置 key，回退到规则路由
+        from agent_router import answer_message_rule_based
+        return answer_message_rule_based(message, platform=platform)
     messages = [
         {"role": "system", "content": _tool_system_prompt(platform)},
         {"role": "user", "content": message},

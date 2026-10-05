@@ -4,24 +4,21 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from agent_router import answer_message
 from commerce_api import get_order, list_products, request_refund
 from rag_service import clear_query_engine_cache
 from ticket import create_ticket
+from llm_provider import describe as describe_llm
 
 
 app = FastAPI(title="AI Customer Service Platform", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],  # 作品集演示：允许任意来源访问
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -61,7 +58,11 @@ class TicketRequest(BaseModel):
 # ---------------------------------------------------------------------------
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "service": "ai-customer-service-platform"}
+    return {
+        "status": "ok",
+        "service": "ai-customer-service-platform",
+        "llm": describe_llm(),
+    }
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -101,3 +102,15 @@ def tickets(req: TicketRequest) -> dict:
 def refresh_knowledge() -> dict:
     clear_query_engine_cache()
     return {"status": "ok", "message": "RAG index reloaded."}
+
+
+# ---------------------------------------------------------------------------
+# 托管前端静态文件（生产/单容器部署模式）
+# ---------------------------------------------------------------------------
+_FRONTEND_DIR = Path(__file__).parent / "frontend"
+if _FRONTEND_DIR.exists():
+    app.mount("/static", StaticFiles(directory=_FRONTEND_DIR), name="static")
+
+    @app.get("/", include_in_schema=False)
+    def index() -> FileResponse:
+        return FileResponse(_FRONTEND_DIR / "index.html")

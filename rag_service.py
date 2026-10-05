@@ -33,11 +33,12 @@ def get_knowledge_files() -> list[str]:
 
 
 def _use_openai_llm() -> bool:
-    return bool(os.getenv("OPENAI_API_KEY"))
+    from llm_provider import get_config
+    return get_config().available
 
 
 # ---------------------------------------------------------------------------
-# 生产路径：LlamaIndex + OpenAI Embeddings / LLM
+# 生产路径：LlamaIndex + 国产/海外 LLM & Embeddings
 # ---------------------------------------------------------------------------
 @lru_cache(maxsize=1)
 def _get_openai_query_engine():
@@ -45,9 +46,19 @@ def _get_openai_query_engine():
     from llama_index.core.node_parser import TokenTextSplitter
     from llama_index.embeddings.openai import OpenAIEmbedding
     from llama_index.llms.openai import OpenAI
+    from llm_provider import get_config
 
-    Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
-    Settings.llm = OpenAI(model="gpt-4o-mini")
+    cfg = get_config()
+    Settings.embed_model = OpenAIEmbedding(
+        model=cfg.embedding_model or "text-embedding-3-small",
+        api_base=cfg.base_url,
+        api_key=cfg.api_key,
+    )
+    Settings.llm = OpenAI(
+        model=cfg.chat_model,
+        api_base=cfg.base_url,
+        api_key=cfg.api_key,
+    )
 
     documents = SimpleDirectoryReader(input_files=get_knowledge_files()).load_data()
     parser = TokenTextSplitter(chunk_size=400, chunk_overlap=40)

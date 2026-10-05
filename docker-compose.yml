@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: ai-cs-platform
+    ports:
+      - "8010:8010"
+    environment:
+      # 默认本地模式，无需任何外部 API Key，开箱即用
+      MODEL_PROVIDER: ${MODEL_PROVIDER:-local}
+      # 按需填入对应厂商的 API Key（见 .env.example）
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      ZHIPU_API_KEY: ${ZHIPU_API_KEY:-}
+      MOONSHOT_API_KEY: ${MOONSHOT_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    restart: unless-stopped

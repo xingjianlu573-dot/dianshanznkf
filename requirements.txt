@@ -1,7 +1,8 @@
 fastapi>=0.115
 uvicorn>=0.34
 python-dotenv>=1.0
-# 生产模式（可选）：配置 OPENAI_API_KEY 后启用
+
+# 切换到国产/海外 LLM 时取消注释（本地 BM25 模式不需要）：
 # openai>=1.109
 # llama-index-core>=0.12
 # llama-index-embeddings-openai>=0.3
