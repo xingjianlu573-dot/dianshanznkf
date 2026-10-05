@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Customer Service Platform · 企业级电商智能客服</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0b1020;
+    color: #e6e8ee;
+    line-height: 1.6;
+  }
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  header {
+    padding: 80px 0 60px;
+    text-align: center;
+    background: radial-gradient(ellipse at top, #1a2350 0%, #0b1020 70%);
+  }
+  .badge {
+    display: inline-block; padding: 4px 12px; border-radius: 999px;
+    background: rgba(99,102,241,.15); color: #a5b4fc; font-size: 13px;
+    border: 1px solid rgba(99,102,241,.3); margin-bottom: 20px;
+  }
+  h1 {
+    font-size: 48px; font-weight: 700; letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+  }
+  .subtitle { font-size: 18px; color: #9aa3b8; max-width: 680px; margin: 0 auto 32px; }
+  .cta {
+    display: inline-block; padding: 14px 32px; border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
+    text-decoration: none; font-weight: 600; margin: 0 8px;
+  }
+  .cta.secondary { background: transparent; border: 1px solid #334155; color: #cbd5e1; }
+  section { padding: 60px 0; }
+  h2 { font-size: 28px; margin-bottom: 12px; }
+  .lead { color: #9aa3b8; margin-bottom: 32px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card {
+    background: #131a2e; border: 1px solid #1f2a44; border-radius: 12px;
+    padding: 24px;
+  }
+  .card h3 { font-size: 17px; margin-bottom: 8px; color: #fff; }
+  .card p { font-size: 14px; color: #9aa3b8; }
+  .tag {
+    display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 4px;
+    background: #1e293b; color: #94a3b8; margin-right: 6px; margin-top: 8px;
+  }
+  pre {
+    background: #0f172a; border: 1px solid #1e293b; border-radius: 10px;
+    padding: 16px 20px; overflow-x: auto; font-size: 14px;
+    color: #e2e8f0; font-family: ui-monospace, "Cascadia Code", monospace;
+  }
+  .arch {
+    background: #131a2e; border: 1px solid #1f2a44; border-radius: 12px;
+    padding: 32px; text-align: center;
+  }
+  .arch-box {
+    display: inline-block; padding: 12px 20px; border-radius: 8px;
+    margin: 6px; font-size: 14px;
+  }
+  .arch-user { background: #1e3a5f; color: #93c5fd; }
+  .arch-router { background: #4c1d95; color: #c4b5fd; }
+  .arch-rag { background: #14532d; color: #86efac; }
+  .arch-api { background: #7c2d12; color: #fdba74; }
+  .arch-ticket { background: #7f1d1d; color: #fca5a5; }
+  .arrow { color: #475569; margin: 0 4px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { padding: 12px; text-align: left; border-bottom: 1px solid #1f2a44; font-size: 14px; }
+  th { color: #94a3b8; font-weight: 500; }
+  footer { padding: 40px 0; text-align: center; color: #475569; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="badge">企业级 AI 应用案例 · 作品集</div>
+    <h1>AI Customer Service Platform</h1>
+    <p class="subtitle">模拟一家消费电子企业（星澜数码 NovaTech）的真实客服系统，
+      覆盖售前咨询、售后支持、智能工单三大场景，基于 RAG + Agent + Workflow 构建。</p>
+    <a class="cta" href="/">进入工作台 →</a>
+    <a class="cta secondary" href="https://github.com/xingjianlu573-dot/dianshanznkf">GitHub 仓库</a>
+  </div>
+</header>
+
+<section>
+  <div class="container">
+    <h2>系统架构</h2>
+    <p class="lead">意图路由 + 工具调用 + 知识检索 三路并行，工单兜底。</p>
+    <div class="arch">
+      <div class="arch-box arch-user">👤 客户提问</div>
+      <div class="arrow">→</div>
+      <div class="arch-box arch-router">🧭 Agent Router<br/>意图分类</div>
+      <br/><br/>
+      <div class="arrow">↓</div>
+      <br/>
+      <div class="arch-box arch-rag">📚 RAG<br/>产品手册 / FAQ / 政策</div>
+      <span class="arrow">·</span>
+      <div class="arch-box arch-api">🔌 业务 API<br/>商品 / 订单 / 物流 / 退款</div>
+      <span class="arrow">·</span>
+      <div class="arch-box arch-ticket">🎫 智能工单<br/>分类 / 优先级 / 建议</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2>核心能力</h2>
+    <p class="lead">不是套壳 ChatGPT，而是一个有业务流程的 Agent 系统。</p>
+    <div class="grid">
+      <div class="card">
+        <h3>📚 RAG 知识检索</h3>
+        <p>本地 BM25（中文 bigram）兜底；配置 LLM 后自动切 LlamaIndex 向量检索。所有答复带引用可追溯。</p>
+        <span class="tag">BM25</span><span class="tag">LlamaIndex</span><span class="tag">中文切分</span>
+      </div>
+      <div class="card">
+        <h3>🧭 Agent 意图路由</h3>
+        <p>规则路由 + LLM Function Calling 双路。识别售前/售后/退款/投诉，带订单号才走订单接口，问政策不走退款流程。</p>
+        <span class="tag">FastAPI</span><span class="tag">Tool Calling</span>
+      </div>
+      <div class="card">
+        <h3>🔀 Workflow 状态机</h3>
+        <p>退款状态机（申请→审核→退回）、物流轨迹、改地址/取消/催发货分支，严格按订单状态决定可执行操作。</p>
+        <span class="tag">状态机</span><span class="tag">业务接口</span>
+      </div>
+      <div class="card">
+        <h3>🎫 智能工单</h3>
+        <p>自动分类 7 类、P0/P1/P2 三级优先级、给出处理建议。售后问题 RAG 答完仍自动派单让人工跟进。</p>
+        <span class="tag">自动分类</span><span class="tag">情绪识别</span>
+      </div>
+      <div class="card">
+        <h3>🇨🇳 国产模型适配</h3>
+        <p>一行环境变量切 DeepSeek / 通义千问 / 智谱 GLM / Kimi，全部 OpenAI 兼容接口，国内直连无需代理。</p>
+        <span class="tag">DeepSeek</span><span class="tag">Qwen</span><span class="tag">GLM</span><span class="tag">Kimi</span>
+      </div>
+      <div class="card">
+        <h3>🐳 容器化部署</h3>
+        <p>Dockerfile + docker-compose，阿里云 pip 镜像加速，单端口 8010 前后端一体，国内云服务器 5 分钟上线。</p>
+        <span class="tag">Docker</span><span class="tag">国内镜像</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2>业务场景覆盖</h2>
+    <table>
+      <tr><th>场景</th><th>客户会问</th><th>系统行为</th></tr>
+      <tr><td>售前咨询</td><td>Air100 和 Studio200 怎么选？续航多久？</td><td>RAG 命中产品对比，附商品卡片</td></tr>
+      <tr><td>订单履约</td><td>显示签收但我没收到 / 能改地址吗</td><td>走订单接口 + 自动建工单</td></tr>
+      <tr><td>故障排查</td><td>充电仓充不进电 / 降噪没用</td><td>RAG 给排查步骤 + P1 工单</td></tr>
+      <tr><td>退款售后</td><td>帮我退 SO20260930004</td><td>退款状态机，金额原路退回</td></tr>
+      <tr><td>投诉升级</td><td>什么垃圾我要投诉</td><td>立即 P0 工单 + 主管回电</td></tr>
+      <tr><td>知识库未命中</td><td>老板姓什么 / 你们周末上班吗</td><td>按情绪匹配兜底话术转人工</td></tr>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <h2>一键启动</h2>
+    <p class="lead">默认本地模式，零 API Key，30 秒跑起来。</p>
+    <pre>git clone https://github.com/xingjianlu573-dot/dianshanznkf.git
+cd dianshanznkf
+pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+uvicorn api:app --port 8010
+# 打开 http://localhost:8010</pre>
+    <p style="margin-top:16px; color:#9aa3b8; font-size:14px;">
+      想接国产大模型：复制 <code>.env.example</code> 为 <code>.env</code>，
+      设置 <code>MODEL_PROVIDER=deepseek</code> 并填 <code>DEEPSEEK_API_KEY</code> 即可。
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    本项目为作品集演示，所有商品 / 订单均为模拟数据 · Built with FastAPI + RAG + Agent
+  </div>
+</footer>
+
+</body>
+</html>
