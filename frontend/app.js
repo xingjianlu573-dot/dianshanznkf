@@ -95,7 +95,7 @@ function createMessage({ role, text, intent, toolResult, sources, ticket }) {
     sources.forEach((s, i) => {
       const item = document.createElement('details');
       item.className = 'source-item';
-      const score = s.score != null ? ` · 相关度 ${(s.score * 100).toFixed(0)}%` : '';
+      const score = s.score != null ? ` · 相关度得分 ${(s.score).toFixed(1)}` : '';
       item.innerHTML = `<summary><span class="src-badge">引用 ${i + 1}</span>${esc(s.file_name)}${score}</summary><pre class="src-body">${esc(s.text)}</pre>`;
       wrap.appendChild(item);
     });

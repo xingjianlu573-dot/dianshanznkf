@@ -17,12 +17,13 @@
 
 ## 在线体验
 
-启动后访问以下两个页面（默认端口 8010，部署到公网后替换成你的域名）：
+启动后访问以下三个页面（默认端口 8010，部署到公网后替换成你的域名）：
 
 | 页面 | 链接 | 作用 |
 |---|---|---|
 | 💬 **客服工作台** | [http://localhost:8010/](http://localhost:8010/) | 实际功能演示：售前 / 售后 / 工单全流程，点侧边栏按钮一键体验 |
 | 📊 **项目介绍页** | [http://localhost:8010/showcase](http://localhost:8010/showcase) | 作品集展示：架构图、能力卡片、业务场景、一键启动命令 |
+| 🛎 **SDK 嵌入演示页** | [http://localhost:8010/sdk-demo.html](http://localhost:8010/sdk-demo.html) | 模拟第三方网站：一行代码嵌入客服浮窗，多轮对话直连后端 |
 
 ![客服工作台](docs/screenshots/06-workbench-presale.png)
 ![售前 RAG 对话](docs/screenshots/02-presale-rag.png)
@@ -32,6 +33,16 @@
 
 
 ***
+
+## 新能力（本轮升级）
+
+| 能力 | 说明 | 入口 |
+|---|---|---|
+| **多轮上下文** | 同一 `session_id` 保留最近 8 轮对话：意图分类只看当前消息（避免历史词污染），订单号可从历史回退（"那退款呢"能自动关联上一单），RAG 支持"那它防水吗"这类指代 | 前端自动携带随机 `session_id` |
+| **飞书对接** | `POST /feishu/webhook` 事件订阅：`url_verification` 挑战回显、`im.message.receive_v1` 消息解析，配 `FEISHU_APP_ID/FEISHU_APP_SECRET` 后可主动回复 | 飞书开放平台 |
+| **引用阅读器** | RAG 回复附带逐条引用卡片：文件 + 相关度得分 + 原文，点击展开 | 工作台消息下方 |
+| **SDK 浮窗** | 零依赖 `novatech-chat.js`：一行 `<script>` 即可给任意网站加客服浮窗，支持多轮会话、思考中/网络异常兜底 | `/novatech-chat.js` + `/sdk-demo.html` |
+| **情绪话术库** | 联网收集真实客服话术：angry/anxious/disappointed/neutral 四类各多句随机；愤怒且无业务意图直接转人工 + P0 工单 | `agent_router.py` |
 
 ## 业务定位
 
@@ -152,21 +163,22 @@ flowchart LR
 
 ```
 ecommerce-rag-agent/
-├── api.py                # FastAPI 入口：/chat /products /orders /refund /tickets
-├── agent_router.py       # 意图路由 + Agent 编排（保留原文件，扩展中文意图）
+├── api.py                # FastAPI 入口：/chat /products /orders /refund /tickets /feishu/webhook
+├── agent_router.py       # 意图路由 + Agent 编排（保留原文件，扩展中文意图 + 多轮上下文）
 ├── openai_tool_router.py # OpenAI tool calling 路由（生产路径）
 ├── rag_service.py        # RAG 服务：LlamaIndex 生产路径 + BM25 本地兜底
 ├── commerce_api.py       # 模拟商品库 + 订单库 + 物流 + 退款（已替换为电子产品）
 ├── ticket.py             # 新增：智能工单（分类/优先级/处理建议）
+├── feishu_bridge.py      # 新增：飞书 webhook 事件解析 + 主动回复
 ├── store_knowledge.py    # 保留：URL → Markdown 知识抽取工具
 ├── app.py                # 保留：CLI REPL
 ├── data/
 │   ├── products.md       # 产品手册语料
-│   ├── faq.md            # 客服 FAQ
+│   ├── faq.md            # 客服 FAQ（40 条，覆盖售前/履约/售后）
 │   ├── policy.md         # 售后政策（7天无理由/退款/保修）
 │   └── manuals/
 │       └── air100_manual.md  # 单品使用手册
-├── frontend/             # 聊天工作台 UI
+├── frontend/             # 聊天工作台 UI + SDK 浮窗（novatech-chat.js / sdk-demo.html）
 └── docs/screenshots/     # 运行截图
 ```
 
@@ -221,6 +233,8 @@ cd frontend && python -m http.server 5173
 | 我想退货，订单 SO20260930004 怎么退款？ | `REFUND`       | 退款受理 / 已在审核中等状态机校验     |
 | 你们一般多久发货？运费多少？              | `RAG`          | faq.md 物流政策答案          |
 | 这质量也太差了，我要投诉，转人工！           | `ESCALATE`     | 人工升级文案 + **P0 紧急工单卡片** |
+| （先问 Air100）→ 那它防水吗？          | 多轮上下文 `RAG`   | 自动关联上一轮产品，命中 IPX5 防水参数 |
+| （先报订单）→ 那退款呢？               | 多轮上下文 `REFUND` | 自动回退历史订单号，直接走退款状态机 |
 
 
 
@@ -245,10 +259,20 @@ curl -X POST http://127.0.0.1:8010/orders/SO20260930004/refund \
   -H "Content-Type: application/json" \
   -d '{"reason":"不想要了"}'
 
-# 聊天
+# 聊天（多轮：同一 session_id 共享上下文）
 curl -X POST http://127.0.0.1:8010/chat \
   -H "Content-Type: application/json" \
-  -d '{"message":"Air100 和 Studio200 怎么选？"}'
+  -d '{"message":"Air100 和 Studio200 怎么选？","session_id":"demo-001"}'
+
+# 飞书事件订阅（url_verification 挑战回显）
+curl -X POST http://127.0.0.1:8010/feishu/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"type":"url_verification","challenge":"xxxx"}'
+
+# 飞书收到客户消息（mock 模式直接返回 reply）
+curl -X POST http://127.0.0.1:8010/feishu/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"schema":"2.0","event":{"type":"im.message.receive_v1","message":{"chat_id":"oc_xxx","message_id":"om_1","content":"{\"text\":\"Air100 防水吗？\"}"}}}'
 
 # 手动建工单
 curl -X POST http://127.0.0.1:8010/tickets \
@@ -273,6 +297,18 @@ curl -X POST http://127.0.0.1:8010/tickets \
 | 订单物流卡片                                            | 智能工单（P0 升级）                                          |
 | ------------------------------------------------- | ---------------------------------------------------- |
 | ![order](docs/screenshots/03-order-logistics.png) | ![ticket](docs/screenshots/04-escalation-ticket.png) |
+
+
+
+| 多轮上下文 + 引用阅读器                                      | SDK 浮窗嵌入演示（第三方网站视角）                          |
+| ------------------------------------------------- | --------------------------------------------- |
+| ![multiturn](docs/screenshots/07-workbench-multiturn.png) | ![sdk](docs/screenshots/08-sdk-demo.png) |
+
+
+
+| SDK 浮窗内多轮对话                                        | 项目介绍页（作品集展示）                                    |
+| ------------------------------------------------- | --------------------------------------------- |
+| ![sdkchat](docs/screenshots/09-sdk-chat.png)       | ![showcase](docs/screenshots/05-showcase-page.png) |
 
 
 
