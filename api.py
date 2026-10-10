@@ -133,6 +133,15 @@ def refresh_knowledge() -> dict:
 # 托管前端静态文件（生产/单容器部署模式）
 # ---------------------------------------------------------------------------
 _FRONTEND_DIR = Path(__file__).parent / "frontend"
+
+
+@app.get("/showcase", include_in_schema=False)
+async def showcase_page():
+    # 新版 Starlette 的 StaticFiles html 模式不再支持"无扩展名自动补 .html"，
+    # 这里显式路由，保证 README 里的 http://host/showcase 链接可用。
+    return FileResponse(_FRONTEND_DIR / "showcase.html")
+
+
 if _FRONTEND_DIR.exists():
     # 把前端目录挂到根路径（API 路由已在上方注册，优先匹配）
     app.mount("/", StaticFiles(directory=_FRONTEND_DIR, html=True), name="static")
