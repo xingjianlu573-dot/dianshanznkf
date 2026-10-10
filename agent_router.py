@@ -96,7 +96,7 @@ ORDER_TERMS = (
 )
 REFUND_TERMS = (
     "退款", "退货", "退钱", "不想要了", "拍错", "多拍", "7天无理由", "七天无理由",
-    "换货", "退订单",
+    "换货", "退订单", "要退", "想退", "怎么退", "退掉", "退这单",
 )
 PRODUCT_TERMS = (
     "多少钱", "价格", "参数", "区别", "推荐", "对比", "哪个好", "续航",
@@ -118,6 +118,7 @@ def classify_intent(message: str, history: list[dict] | None = None) -> str:
     has_order_id = bool(_extract_order_id_with_history(message, history))
     own_order_hint = any(term in text for term in (
         "我的订单", "我的包裹", "我的快递", "我买的", "我拍的", "刚买的", "刚收到",
+        "这单", "这单的", "这一单",
     ))
     if any(term in text for term in REFUND_TERMS):
         if has_order_id or own_order_hint:

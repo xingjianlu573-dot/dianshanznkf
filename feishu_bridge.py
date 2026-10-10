@@ -23,11 +23,16 @@ from __future__ import annotations
 import json
 import os
 import re
+from collections import defaultdict, deque
 from typing import Optional
 
 import requests
 
 from agent_router import answer_message
+
+# 飞书渠道会话：chat_id -> [{role, content}, ...]（与 api.py 同样 maxlen=8）
+# 独立维护，避免 api.py ↔ feishu_bridge.py 循环 import
+_feishu_conversations: dict[str, deque] = defaultdict(lambda: deque(maxlen=8))
 
 
 def _extract_text_from_content(content: str) -> str:
@@ -94,6 +99,13 @@ def handle_feishu_event(payload: dict) -> dict:
     - 状态 ok：{code:0, msg:"success", reply: "给客户的话术"}（mock 模式 reply 直接返回给飞书）
     - 状态 skipped：非文本消息/无内容，{code:0, msg:"skipped"}
     """
+    # 0. 安全校验：若配置了 FEISHU_VERIFY_TOKEN，则校验事件体中的 token 字段
+    expected_token = os.getenv("FEISHU_VERIFY_TOKEN", "")
+    if expected_token:
+        got_token = payload.get("token", "")
+        if got_token != expected_token:
+            return {"code": 0, "msg": "forbidden"}
+
     # 1. URL 验证：返回 challenge
     if _is_url_verification(payload):
         return {"code": 0, "msg": "success", "challenge": payload.get("challenge", "")}
@@ -108,11 +120,16 @@ def handle_feishu_event(payload: dict) -> dict:
     if not text:
         return {"code": 0, "msg": "skipped"}
 
-    # 3. 交给客服 Agent 处理
-    result = answer_message(text, platform="feishu", history=None)
+    # 3. 交给客服 Agent 处理（以 chat_id 为 session，飞书渠道同样支持多轮上下文）
+    chat_id = info["chat_id"]
+    history = list(_feishu_conversations[chat_id]) if chat_id else None
+    result = answer_message(text, platform="feishu", history=history)
     reply = result.get("answer", "")
+    if chat_id:
+        _feishu_conversations[chat_id].append({"role": "user", "content": text})
+        _feishu_conversations[chat_id].append({"role": "agent", "content": reply})
 
     # 4. api 模式：主动发消息回飞书
-    if _send_via_feishu_api(info["chat_id"], reply):
+    if _send_via_feishu_api(chat_id, reply):
         return {"code": 0, "msg": "success", "delivered": "feishu_api"}
     return {"code": 0, "msg": "success", "reply": reply}

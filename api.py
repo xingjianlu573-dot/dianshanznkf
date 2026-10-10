@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from agent_router import answer_message
 from commerce_api import get_order, list_products, request_refund
@@ -35,6 +35,14 @@ class ChatRequest(BaseModel):
     platform: str = "novatech"
     session_id: str = "default"
 
+    @field_validator("message")
+    @classmethod
+    def _message_not_blank(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("message must not be blank")
+        return v
+
 
 class ChatResponse(BaseModel):
     intent: str
@@ -49,9 +57,22 @@ class ChatResponse(BaseModel):
 # 生产环境可替换为 Redis / PostgreSQL
 from collections import defaultdict, deque
 _conversations: dict[str, deque] = defaultdict(lambda: deque(maxlen=8))
+_MAX_SESSIONS = 200  # 防止 session_id 无限增长导致内存泄漏
+_session_order: deque[str] = deque()
+
+
+def _touch_session(session_id: str) -> None:
+    """记录/刷新会话活跃顺序；超过上限时淘汰最久未活跃的会话。"""
+    if session_id in _session_order:
+        _session_order.remove(session_id)
+    _session_order.append(session_id)
+    while len(_session_order) > _MAX_SESSIONS:
+        old = _session_order.popleft()
+        _conversations.pop(old, None)
 
 
 def _get_history(session_id: str) -> list[dict]:
+    _touch_session(session_id)
     return list(_conversations[session_id])
 
 

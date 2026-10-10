@@ -28,8 +28,8 @@ const prompts = document.querySelector('#prompts');
 const error = document.querySelector('#error');
 
 function esc(s) {
-  return String(s ?? '').replace(/[&<>"]/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
   }[c]));
 }
 
@@ -145,7 +145,7 @@ async function sendMessage(text) {
   } catch (e) {
     typing.remove();
     error.textContent = e.message;
-    createMessage({ role: 'agent', text: '后端未启动，请先运行 uvicorn api:app --port 8000' });
+    createMessage({ role: 'agent', text: '后端未启动或请求失败，请先运行 uvicorn api:app --host 0.0.0.0 --port 8010' });
   } finally {
     setLoading(false);
     input.focus();
