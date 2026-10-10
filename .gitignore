@@ -30,3 +30,6 @@ server.err
 _shots/
 frontend/_shots/
 frontend/_backup/
+
+frontend/_publish/
+frontend/prepare_publish.py
