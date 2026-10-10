@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%236366f1'/><text x='32' y='45' font-size='36' font-weight='700' text-anchor='middle' fill='white' font-family='Arial'>N</text></svg>" />
 <title>AI Customer Service Platform · 企业级电商智能客服</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -73,9 +74,41 @@
   th, td { padding: 12px; text-align: left; border-bottom: 1px solid #1f2a44; font-size: 14px; }
   th { color: #94a3b8; font-weight: 500; }
   footer { padding: 40px 0; text-align: center; color: #475569; font-size: 13px; }
+  /* ===== 新增：顶部导航 ===== */
+  .topnav { position: sticky; top: 0; z-index: 10; background: rgba(11,16,32,.88); backdrop-filter: blur(10px); border-bottom: 1px solid #1f2a44; }
+  .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
+  .nav-brand { display: flex; gap: 10px; align-items: center; font-weight: 600; font-size: 14px; color: #e6e8ee; }
+  .nav-logo { width: 28px; height: 28px; border-radius: 7px; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: grid; place-items: center; font-size: 15px; font-weight: 700; color: #fff; }
+  .nav-links a { color: #9aa3b8; text-decoration: none; font-size: 13px; margin-left: 18px; }
+  .nav-links a:hover { color: #fff; }
+  .nav-links .nav-cta { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; padding: 8px 18px; border-radius: 8px; font-weight: 600; }
+  .nav-links .nav-cta:hover { opacity: .9; }
+  /* ===== 新增：Hero 数据指标 ===== */
+  .stats { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; }
+  .stat { background: #131a2e; border: 1px solid #1f2a44; border-radius: 10px; padding: 12px 18px; min-width: 96px; }
+  .stat b { display: block; font-size: 22px; color: #a5b4fc; }
+  .stat span { font-size: 12px; color: #94a3b8; }
+  /* ===== 新增：在线体验区 ===== */
+  .demo-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .demo-tips { margin-top: 16px; text-align: center; color: #9aa3b8; font-size: 14px; }
+  .demo-tips code { background: #1e293b; padding: 2px 8px; border-radius: 6px; color: #a5b4fc; font-size: 12.5px; }
+  html { scroll-padding-top: 64px; }
 </style>
 </head>
 <body>
+
+<nav class="topnav">
+  <div class="container nav-inner">
+    <div class="nav-brand"><span class="nav-logo">N</span> AI Customer Service Platform</div>
+    <div class="nav-links">
+      <a href="#arch">系统架构</a>
+      <a href="#cap">核心能力</a>
+      <a href="#scenes">业务场景</a>
+      <a href="#demo">在线体验</a>
+      <a class="nav-cta" href="/">进入工作台 →</a>
+    </div>
+  </div>
+</nav>
 
 <header>
   <div class="container">
@@ -83,12 +116,20 @@
     <h1>AI Customer Service Platform</h1>
     <p class="subtitle">模拟一家消费电子企业（星澜数码 NovaTech）的真实客服系统，
       覆盖售前咨询、售后支持、智能工单三大场景，基于 RAG + Agent + Workflow 构建。</p>
-    <a class="cta" href="/">进入工作台 →</a>
+    <div class="stats">
+      <div class="stat"><b>5</b><span>模拟产品</span></div>
+      <div class="stat"><b>40+</b><span>FAQ 知识条目</span></div>
+      <div class="stat"><b>7</b><span>工单分类</span></div>
+      <div class="stat"><b>4</b><span>情绪档位话术</span></div>
+      <div class="stat"><b>2</b><span>接入渠道</span></div>
+      <div class="stat"><b>3</b><span>优先级 P0/P1/P2</span></div>
+    </div>
+    <a class="cta" href="/">进入工作台体验 →</a>
     <a class="cta secondary" href="https://github.com/xingjianlu573-dot/dianshanznkf">GitHub 仓库</a>
   </div>
 </header>
 
-<section>
+<section id="arch">
   <div class="container">
     <h2>系统架构</h2>
     <p class="lead">意图路由 + 工具调用 + 知识检索 三路并行，工单兜底。</p>
@@ -108,7 +149,7 @@
   </div>
 </section>
 
-<section>
+<section id="cap">
   <div class="container">
     <h2>核心能力</h2>
     <p class="lead">不是套壳 ChatGPT，而是一个有业务流程的 Agent 系统。</p>
@@ -143,11 +184,31 @@
         <p>Dockerfile + docker-compose，阿里云 pip 镜像加速，单端口 8010 前后端一体，国内云服务器 5 分钟上线。</p>
         <span class="tag">Docker</span><span class="tag">国内镜像</span>
       </div>
+      <div class="card">
+        <h3>💬 多轮上下文</h3>
+        <p>支持"那它防水吗"这类指代追问：从历史会话找回产品，属性校验兜底保证答到点子上（问防水就答 IPX5）。</p>
+        <span class="tag">会话记忆</span><span class="tag">指代理解</span><span class="tag">属性校验</span>
+      </div>
+      <div class="card">
+        <h3>🎭 情绪识别话术库</h3>
+        <p>愤怒 / 着急 / 失望 / 中立 4 档情绪识别，知识库未命中时按客户心情匹配真实电商话术，统一转人工并带上下文交接。</p>
+        <span class="tag">情绪识别</span><span class="tag">话术库</span><span class="tag">转人工</span>
+      </div>
+      <div class="card">
+        <h3>✈️ 飞书渠道对接</h3>
+        <p>开放平台 Webhook 接入：url_verification 校验 + 事件解析，按 chat_id 保持多轮会话，一行环境变量启用。</p>
+        <span class="tag">飞书</span><span class="tag">Webhook</span><span class="tag">多轮</span>
+      </div>
+      <div class="card">
+        <h3>🧩 SDK 浮窗嵌入</h3>
+        <p>一行 <code>&lt;script&gt;</code> 把智能客服浮窗嵌入任意网页，自动携带会话 ID，售前 / 售后 / 工单能力全量可用。</p>
+        <span class="tag">SDK</span><span class="tag">浮窗</span><span class="tag">嵌入</span>
+      </div>
     </div>
   </div>
 </section>
 
-<section>
+<section id="scenes">
   <div class="container">
     <h2>业务场景覆盖</h2>
     <table>
@@ -158,7 +219,27 @@
       <tr><td>退款售后</td><td>帮我退 SO20260930004</td><td>退款状态机，金额原路退回</td></tr>
       <tr><td>投诉升级</td><td>什么垃圾我要投诉</td><td>立即 P0 工单 + 主管回电</td></tr>
       <tr><td>知识库未命中</td><td>老板姓什么 / 你们周末上班吗</td><td>按情绪匹配兜底话术转人工</td></tr>
+      <tr><td>多轮指代</td><td>那它防水吗 / 那退款呢</td><td>历史上下文回退 + 属性校验兜底</td></tr>
+      <tr><td>情绪升级</td><td>你们是不是坑人，我要投诉到底！</td><td>敏感词命中转人工 + P0 工单</td></tr>
+      <tr><td>渠道接入</td><td>在飞书里直接发消息咨询</td><td>Webhook 解析 + 按会话多轮回复</td></tr>
     </table>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="container">
+    <h2>在线体验</h2>
+    <p class="lead">不用配置，直接进入工作台，试问几个真实场景问题。</p>
+    <div class="demo-row">
+      <a class="cta" href="/">打开智能客服工作台 →</a>
+      <a class="cta secondary" href="/sdk-demo.html">查看 SDK 浮窗演示</a>
+    </div>
+    <p class="demo-tips">
+      试一下：<code>Air100 和 Studio200 怎么选？</code> ·
+      <code>我的订单 SO20260912001 物流到哪了</code> ·
+      <code>你们是不是坑人，我要投诉！</code> ·
+      <code>那它防水吗（先问 Air100 再指代追问）</code>
+    </p>
   </div>
 </section>
 
@@ -180,7 +261,8 @@ uvicorn api:app --port 8010
 
 <footer>
   <div class="container">
-    本项目为作品集演示，所有商品 / 订单均为模拟数据 · Built with FastAPI + RAG + Agent
+    本项目为作品集演示，所有商品 / 订单均为模拟数据 · Built with FastAPI + RAG + Agent<br/>
+    <a href="/" style="color:#818cf8; text-decoration:none;">返回智能客服工作台 →</a>
   </div>
 </footer>
 
