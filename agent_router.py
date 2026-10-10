@@ -49,16 +49,22 @@ FALLBACK_REPLIES: dict[str, list[str]] = {
         "非常抱歉让您这么生气，我已经第一时间为您升级到客服主管加急处理，10 分钟内会有专人电话联系您，请稍等。",
         "真的很抱歉给您带来这么糟糕的体验，我已为您转接人工客服主管并标记最高优先级，会第一时间回电处理。",
         "对不起让您受委屈了，我立刻为您接通人工客服，主管正在排队接入，请您稍等片刻。",
+        "请您消消气，您的问题我们都会尽力帮您解决。非常抱歉这次没有给您带来愉快的体验，我们非常重视您的反馈，一定会改善问题。",
+        "宝子消消气！您反馈的问题我一字不落记下了，真的超抱歉让您烦心，我现在立刻升级处理，必须给您一个满意的答复！",
     ],
     "anxious": [
         "别着急，我马上为您转接人工客服并标记加急，会优先处理您的问题，请稍等。",
         "理解您赶时间的心情，已为您登记加急，人工客服正在快速接入，请稍等。",
         "收到，已为您跳过排队直接转接人工，请稍等片刻。",
+        "非常理解您着急使用的心情，这边马上为您加急备注、优先安排，您可以放心等待反馈。",
+        "亲，请别着急，非常理解您的心情，我们一定会竭尽全力为您解决，已为您加急处理。",
     ],
     "disappointed": [
         "抱歉没能一次帮您解决，我已为您转接人工客服，会有专人跟进到底。",
         "抱歉让您失望了，已为您登记并转接人工，会给您一个明确的处理方案。",
         "理解您的感受，我马上为您转人工客服跟进，请稍等。",
+        "发生这样的事给您带来不便了，非常抱歉。我们一定会查证清楚，给您一个满意的答复。",
+        "您的反馈我们都记下了，我们会认真核实并给出负责任的处理结果，已转人工跟进。",
     ],
     "neutral": [
         "已为您申请人工客服服务，请稍等。",
@@ -101,15 +107,15 @@ PRODUCT_TERMS = (
 ORDER_ID_RE = re.compile(r"(SO\d{10,}|#?\d{6,})", re.IGNORECASE)
 
 
-def classify_intent(message: str) -> str:
+def classify_intent(message: str, history: list[dict] | None = None) -> str:
     text = message.lower()
 
     if any(term in text for term in ESCALATION_TERMS):
         return "ESCALATE"
 
-    # 退款类问题：只有当消息里带订单号，或明确说"我的订单/我买的那个"时，才真的走退款流程；
-    # 否则像"7天无理由""退款多久到账"是在问售后政策，走 RAG。
-    has_order_id = bool(extract_order_id(message))
+    # 退款类问题：只有当消息里带订单号（或历史对话中有），或明确说"我的订单/我买的那个"时，
+    # 才真的走退款流程；否则像"7天无理由""退款多久到账"是在问售后政策，走 RAG。
+    has_order_id = bool(_extract_order_id_with_history(message, history))
     own_order_hint = any(term in text for term in (
         "我的订单", "我的包裹", "我的快递", "我买的", "我拍的", "刚买的", "刚收到",
     ))
@@ -158,11 +164,39 @@ def _format_order(order: dict) -> str:
     return "\n".join(lines)
 
 
-def _answer_pre_sale(message: str) -> dict:
-    """售前：先看是否命中具体商品，命中就带商品卡片；否则 RAG。"""
+def _answer_pre_sale(message: str, context: str | None = None) -> dict:
+    """售前：先看是否命中具体商品，命中就带商品卡片；否则 RAG。
+    检索顺序：当前消息优先（避免历史词污染）；当前消息未命中且有多轮上下文时，
+    再用带历史的 context 兜底（支持'那它呢'这类指代）。"""
     hits = search_products(message)
-    from rag_service import answer_with_rag
+    from rag_service import _detect_products, _product_chunk, answer_with_rag
     rag = answer_with_rag(message)
+    if not rag.get("matched", True) and context and context != message:
+        # 兜底 1：从历史中提取产品名注入当前问题，支持"那它防水吗"这类指代
+        products_in_context = _detect_products(context)
+        if products_in_context:
+            rag2 = answer_with_rag(message + " " + " ".join(products_in_context))
+            if rag2.get("matched", True):
+                rag = rag2
+        # 兜底 2：仍未命中再尝试完整上下文
+        if not rag.get("matched", True):
+            rag_context = answer_with_rag(context)
+            if rag_context.get("matched", True):
+                rag = rag_context
+    if not rag.get("matched", True):
+        # 兜底 3：查询/历史提到具体产品 → 直接返回该产品手册 chunk（确定性兜底）
+        products = _detect_products(message) or (
+            _detect_products(context) if context else set()
+        )
+        if products:
+            pc = _product_chunk(next(iter(products)))
+            if pc:
+                rag = {
+                    "answer": "根据知识库（products.md）：\n\n" + re.sub(r"^#+\s*", "", pc["text"]).strip(),
+                    "sources": [pc],
+                    "matched": True,
+                    "tool_result": None,
+                }
 
     if hits:
         card_lines = ["在售相关商品："]
@@ -173,9 +207,51 @@ def _answer_pre_sale(message: str) -> dict:
     return rag
 
 
-def answer_message_rule_based(message: str, platform: str = "novatech") -> dict:
-    intent = classify_intent(message)
+def _extract_order_id_with_history(message: str, history: list[dict] | None) -> str:
+    """订单号提取：当前消息优先，没有则从最近历史里找（支持'那退款呢'这类指代）。"""
+    oid = extract_order_id(message)
+    if oid:
+        return oid
+    if history:
+        for h in reversed(history[-4:]):
+            if h.get("role") == "user":
+                oid = extract_order_id(h.get("content", ""))
+                if oid:
+                    return oid
+    return ""
+
+
+def answer_message_rule_based(
+    message: str,
+    platform: str = "novatech",
+    history: list[dict] | None = None,
+    context: str | None = None,
+) -> dict:
+    # 意图分类只基于当前消息（订单号可从历史回退），避免历史里的"退款/订单号"污染判断
+    intent = classify_intent(message, history)
     ticket = None
+
+    # 情绪拦截：愤怒/极度不满且没有明确业务意图（无订单号、无产品词）→ 直接转人工 + P0 工单
+    emotion = _detect_emotion(message)
+    if (
+        emotion == "angry"
+        and intent in ("RAG", "PRE_SALE")
+        and not extract_order_id(message)
+    ):
+        product_hint = any(p in message.lower() for p in (
+            "air100", "studio200", "watch30", "key87", "gaan65",
+            "充电", "耳机", "手表", "键盘", "充电器", "降噪",
+        ))
+        if not product_hint:
+            ticket = create_ticket(message)
+            ticket["priority"] = "P0-紧急"
+            return {
+                "intent": "ESCALATE",
+                "answer": _fallback_reply(message),
+                "tool_result": escalate_to_human(reason=message[:60], platform=platform),
+                "sources": [],
+                "ticket": ticket,
+            }
 
     # 升级人工 → 同时生成 P0 工单
     if intent == "ESCALATE":
@@ -194,9 +270,9 @@ def answer_message_rule_based(message: str, platform: str = "novatech") -> dict:
             "ticket": ticket,
         }
 
-    # 退款：先抽订单号
+    # 退款：先抽订单号（支持从历史回退）
     if intent == "REFUND":
-        order_id = extract_order_id(message)
+        order_id = _extract_order_id_with_history(message, history)
         if not order_id:
             ticket = create_ticket(message)
             return {
@@ -231,7 +307,7 @@ def answer_message_rule_based(message: str, platform: str = "novatech") -> dict:
 
     # 订单 / 物流
     if intent == "ORDER_STATUS":
-        order_id = extract_order_id(message)
+        order_id = _extract_order_id_with_history(message, history)
         if not order_id:
             return {
                 "intent": "ORDER_STATUS",
@@ -255,8 +331,8 @@ def answer_message_rule_based(message: str, platform: str = "novatech") -> dict:
             "sources": [],
         }
 
-    # 售前 / RAG
-    rag = _answer_pre_sale(message)
+    # 售前 / RAG（context 含多轮历史，帮助理解"那它呢"这类指代）
+    rag = _answer_pre_sale(message, context)
     out = {
         "intent": intent,
         "answer": rag["answer"],
@@ -286,8 +362,22 @@ def should_use_openai_tool_router() -> bool:
     return cfg.available
 
 
-def answer_message(message: str, platform: str = "novatech") -> dict:
+def answer_message(message: str, platform: str = "novatech", history: list[dict] | None = None) -> dict:
+    # 多轮上下文：把最近对话拼成 RAG 检索上下文，帮助理解指代；
+    # 但意图分类仍只用当前消息，避免历史词污染路由。
+    context = message
+    if history:
+        recent = history[-4:]
+        turns = []
+        for h in recent:
+            role = "客户" if h.get("role") == "user" else "客服"
+            turns.append(f"{role}：{h.get('content', '')[:120]}")
+        if turns:
+            context = "【最近对话】\n" + "\n".join(turns) + "\n\n【当前问题】" + message
+
     if should_use_openai_tool_router():
         from openai_tool_router import answer_message_with_tools
-        return answer_message_with_tools(message=message, platform=platform)
-    return answer_message_rule_based(message=message, platform=platform)
+        return answer_message_with_tools(message=context, platform=platform)
+    return answer_message_rule_based(
+        message=message, platform=platform, history=history, context=context
+    )

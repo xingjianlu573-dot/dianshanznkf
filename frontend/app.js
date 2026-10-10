@@ -1,6 +1,9 @@
 // 默认同源（单端口部署）；开发模式可在 index.html 设 window.AGENT_API_URL
 const API_URL = window.AGENT_API_URL || '';
 
+// 会话 ID：同一浏览器会话内保持多轮上下文
+const SESSION_ID = 'demo-' + Math.random().toString(36).slice(2, 10);
+
 const demoPrompts = [
   'Air100 和 Studio200 怎么选？',
   'Watch30 防水吗？支持 iPhone 吗？',
@@ -83,10 +86,20 @@ function createMessage({ role, text, intent, toolResult, sources, ticket }) {
   }
 
   if (sources && sources.length) {
-    const d = document.createElement('details');
-    const src = sources.map(s => `<section><strong>${esc(s.file_name)}</strong><p>${esc(s.text)}</p></section>`).join('');
-    d.innerHTML = `<summary>知识库引用（${sources.length}）</summary>${src}`;
-    article.appendChild(d);
+    const wrap = document.createElement('div');
+    wrap.className = 'sources';
+    const head = document.createElement('div');
+    head.className = 'sources-head';
+    head.textContent = `知识库引用（${sources.length}）· 点击查看原文`;
+    wrap.appendChild(head);
+    sources.forEach((s, i) => {
+      const item = document.createElement('details');
+      item.className = 'source-item';
+      const score = s.score != null ? ` · 相关度 ${(s.score * 100).toFixed(0)}%` : '';
+      item.innerHTML = `<summary><span class="src-badge">引用 ${i + 1}</span>${esc(s.file_name)}${score}</summary><pre class="src-body">${esc(s.text)}</pre>`;
+      wrap.appendChild(item);
+    });
+    article.appendChild(wrap);
   }
 
   chat.appendChild(article);
@@ -116,7 +129,7 @@ async function sendMessage(text) {
     const resp = await fetch(`${API_URL}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, platform: 'novatech' }),
+      body: JSON.stringify({ message: text, platform: 'novatech', session_id: SESSION_ID }),
     });
     const data = await resp.json();
     typing.remove();

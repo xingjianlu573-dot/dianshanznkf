@@ -90,6 +90,13 @@ body {
 details { margin-top: 8px; font-size: 12px; }
 details summary { cursor: pointer; color: var(--muted); }
 details pre, details p { background: #f8fafc; padding: 8px; border-radius: 6px; margin-top: 6px; overflow-x: auto; font-size: 11.5px; }
+/* 引用分块阅读器 */
+.sources { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 8px; font-size: 12px; }
+.sources-head { color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+.source-item { margin-top: 4px; border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; }
+.source-item summary { display: flex; gap: 8px; align-items: center; cursor: pointer; color: var(--text); }
+.src-badge { background: var(--primary-soft); color: #1d4ed8; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+.source-item .src-body { background: #f8fafc; white-space: pre-wrap; line-height: 1.55; }
 .typing { align-self: flex-start; padding: 10px 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; color: var(--muted); font-size: 13px; }
 .composer { display: flex; gap: 10px; padding: 14px 28px; background: var(--panel); border-top: 1px solid var(--border); }
 .composer input { flex: 1; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; outline: none; }

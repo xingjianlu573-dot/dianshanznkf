@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SDK 嵌入演示 · NovaTech 智能客服</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; margin: 0; background: #f5f7fb; color: #1f2937; }
+  .demo-site { max-width: 720px; margin: 0 auto; padding: 48px 24px; }
+  h1 { font-size: 26px; margin-bottom: 8px; }
+  .sub { color: #6b7280; margin-bottom: 32px; }
+  .card { background: #fff; border: 1px solid #e6e8ee; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(15,23,42,.06); }
+  .card h2 { font-size: 16px; margin: 0 0 8px; }
+  .card p { font-size: 14px; color: #4b5563; line-height: 1.7; margin: 0; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 14px 16px; border-radius: 8px; font-size: 12.5px; overflow-x: auto; }
+  .tag { display:inline-block; background:#dbeafe; color:#1d4ed8; font-size:12px; padding:2px 10px; border-radius:999px; margin-right:6px; }
+</style>
+</head>
+<body>
+<div class="demo-site">
+  <h1>这是你的网站 👋</h1>
+  <p class="sub">下面右下角的客服气泡，是通过一行代码嵌入的 NovaTech 智能客服 SDK。</p>
+
+  <div class="card">
+    <h2>📦 商品推荐</h2>
+    <p><span class="tag">Air100</span> TWS 降噪耳机 · ¥899　<span class="tag">Studio200</span> 头戴式 · ¥1599　<span class="tag">Watch30</span> 智能手表 · ¥1299</p>
+  </div>
+  <div class="card">
+    <h2>🚚 物流政策</h2>
+    <p>下单后 48 小时内发货，顺丰/中通/京东随机分配。7 天无理由退货，质量问题商家承担运费。</p>
+  </div>
+  <div class="card">
+    <h2>💡 为什么用 SDK？</h2>
+    <p>不需要改动网站任何逻辑，引入一个 JS 文件，客服入口就出现在所有页面右下角，消息直接对接 AI 客服后端。</p>
+  </div>
+
+  <pre>&lt;script src="http://localhost:8010/novatech-chat.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  NovatechChat.init({ apiBase: 'http://localhost:8010' });
+&lt;/script&gt;</pre>
+</div>
+
+<script src="/novatech-chat.js"></script>
+<script>
+  NovatechChat.init({ apiBase: '', title: '星澜数码客服', subtitle: 'NovaTech 在线客服' });
+</script>
+</body>
+</html>

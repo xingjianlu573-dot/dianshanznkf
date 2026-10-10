@@ -6,6 +6,7 @@
 import math
 import os
 import re
+from collections import Counter
 from functools import lru_cache
 from pathlib import Path
 
@@ -92,8 +93,6 @@ def _tokenize(text: str) -> list[str]:
 def _local_index():
     """按 ## 标题切分；每个标题下的内容是一个 chunk。
     返回 (chunks, df, avgdl)。"""
-    from collections import Counter
-
     chunks = []
     df: Counter = Counter()
     for path_str in get_knowledge_files():
@@ -153,6 +152,25 @@ def _detect_products(query: str) -> set[str]:
         if any(a in q for a in aliases):
             hit.add(canon)
     return hit
+
+
+def _product_chunk(canon: str) -> dict | None:
+    """按产品名返回 products.md 中对应产品的介绍 chunk。
+    用于短查询（如'Air100 怎么样'）BM25 分数不足时的确定性兜底。"""
+    chunks, _, _ = _local_index()
+    aliases = PRODUCT_ALIASES[canon]
+    for c in chunks:
+        if c["file_name"] != "products.md":
+            continue
+        blob = c["text"].lower()
+        if c["text"].startswith("## ") and any(a in blob for a in aliases):
+            return {
+                "file_name": c["file_name"],
+                "file_path": c["file_name"],
+                "text": c["text"],
+                "score": 99.0,  # 直接命中产品手册
+            }
+    return None
 
 
 def _bm25_score(query: str, chunk: dict, df: Counter, avgdl: float, k1=1.5, b=0.75) -> float:

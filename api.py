@@ -33,6 +33,7 @@ RAG_RUNTIME_DIR = Path("runtime_knowledge/current")
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1)
     platform: str = "novatech"
+    session_id: str = "default"
 
 
 class ChatResponse(BaseModel):
@@ -41,6 +42,17 @@ class ChatResponse(BaseModel):
     tool_result: Optional[dict] = None
     sources: list[dict] = Field(default_factory=list)
     ticket: Optional[dict] = None
+    session_id: str = "default"
+
+
+# 内存会话存储：session_id -> [{role, content}, ...]（多轮上下文）
+# 生产环境可替换为 Redis / PostgreSQL
+from collections import defaultdict, deque
+_conversations: dict[str, deque] = defaultdict(lambda: deque(maxlen=8))
+
+
+def _get_history(session_id: str) -> list[dict]:
+    return list(_conversations[session_id])
 
 
 class RefundRequest(BaseModel):
@@ -67,7 +79,13 @@ def health() -> dict:
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(req: ChatRequest) -> dict:
-    return answer_message(req.message, platform=req.platform)
+    history = _get_history(req.session_id)
+    result = answer_message(req.message, platform=req.platform, history=history)
+    # 记录本次对话，供多轮上下文使用
+    _conversations[req.session_id].append({"role": "user", "content": req.message})
+    _conversations[req.session_id].append({"role": "agent", "content": result.get("answer", "")})
+    result["session_id"] = req.session_id
+    return result
 
 
 @app.get("/products")
@@ -95,6 +113,13 @@ def order_refund(order_id: str, req: RefundRequest) -> dict:
 def tickets(req: TicketRequest) -> dict:
     """手动创建智能工单。"""
     return create_ticket(req.message, order_id=req.order_id)
+
+
+@app.post("/feishu/webhook")
+def feishu_webhook(payload: dict) -> dict:
+    """飞书事件订阅回调：接收用户消息 → 客服 Agent 处理 → 回复。"""
+    from feishu_bridge import handle_feishu_event
+    return handle_feishu_event(payload)
 
 
 # 兼容原项目的 store knowledge 接口（保留架构，但默认直接用 data/ 下的语料）
