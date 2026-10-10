@@ -25,3 +25,8 @@ runtime_knowledge/
 server.log
 server.err
 *.log
+
+# Local preview shots / backups
+_shots/
+frontend/_shots/
+frontend/_backup/
