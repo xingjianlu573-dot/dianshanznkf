@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Optional
+from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -33,7 +34,9 @@ RAG_RUNTIME_DIR = Path("runtime_knowledge/current")
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1)
     platform: str = "novatech"
-    session_id: str = "default"
+    # Generate a distinct ID when clients start a new chat without one.
+    # Clients should reuse the returned ID for subsequent turns.
+    session_id: str = Field(default_factory=lambda: uuid4().hex, min_length=1)
 
     @field_validator("message")
     @classmethod
@@ -50,7 +53,7 @@ class ChatResponse(BaseModel):
     tool_result: Optional[dict] = None
     sources: list[dict] = Field(default_factory=list)
     ticket: Optional[dict] = None
-    session_id: str = "default"
+    session_id: str
 
 
 # 内存会话存储：session_id -> [{role, content}, ...]（多轮上下文）
