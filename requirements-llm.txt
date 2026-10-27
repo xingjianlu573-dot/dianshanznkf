@@ -1,0 +1,9 @@
+# ============================================================
+# 真实大模型/向量检索可选依赖（仅在切换 MODEL_PROVIDER 时安装）
+# 本地默认模式（local：规则路由 + BM25 RAG）不需要本文件。
+# 安装：pip install -r requirements-llm.txt -i https://mirrors.aliyun.com/pypi/simple/
+# ============================================================
+openai>=1.109
+llama-index-core>=0.12
+llama-index-embeddings-openai>=0.3
+llama-index-llms-openai>=0.4

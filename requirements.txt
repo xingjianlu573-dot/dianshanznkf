@@ -3,8 +3,6 @@ uvicorn>=0.34
 python-dotenv>=1.0
 requests>=2.31
 
-# 切换到国产/海外 LLM 时取消注释（本地 BM25 模式不需要）：
-# openai>=1.109
-# llama-index-core>=0.12
-# llama-index-embeddings-openai>=0.3
-# llama-index-llms-openai>=0.4
+# 切换到国产/海外 LLM 时，额外安装 requirements-llm.txt（见 README_CN「切换国产大模型」）：
+#   pip install -r requirements-llm.txt
+# 本地默认模式（规则路由 + BM25 RAG）不需要任何 LLM 依赖。
