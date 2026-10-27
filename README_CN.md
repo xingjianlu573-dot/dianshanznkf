@@ -25,6 +25,11 @@ python -m uvicorn api:app --host 0.0.0.0 --port 8010
 
 ## 二、切换国产大模型
 
+> 切换非 `local` 模式前，先安装可选依赖（本地规则 + BM25 模式不需要）：
+> ```bash
+> pip install -r requirements-llm.txt -i https://mirrors.aliyun.com/pypi/simple/
+> ```
+
 复制 `.env.example` 为 `.env`，按需填写一项即可：
 
 | MODEL_PROVIDER | 厂商 | 需要的环境变量 | 申请地址 |
@@ -106,3 +111,12 @@ A：改启动命令 `--port 你的端口`，或改 docker-compose.yml 的端口�
 
 **Q：Windows 下中文乱码？**
 A：PowerShell 里先执行 `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8`。
+
+## 七、演示数据与安全边界（重要）
+
+本项目是**面试作品集演示**，默认运行模式不产生任何真实业务操作：
+
+- **模拟数据**：商品库、订单、物流、退款状态均为内存中的模拟数据（`commerce_api.py` 的 `Product/Order` dataclass），重启即重置；前端聊天页右上角标注「演示环境 · 模拟数据」。
+- **模拟受理**：退款申请与"转人工"仅返回模拟受理记录（响应含 `"mock": true`），不会改变订单状态、不会进入真实客服队列、不会产生真实回访；聊天回复会附带「演示环境 · 模拟受理」提示。
+- **会话 ID 不是身份凭证**：仅用于区分演示会话；公网或多用户部署前，必须增加身份认证、会话所有权校验和持久化会话存储。
+- **业务 API 无认证**：`/orders/*`、`/tickets`、`/chat` 等接口当前没有身份认证/授权。CORS 默认只放行本地来源（可用 `CORS_ALLOW_ORIGINS` 调整），但 **CORS 不是安全边界**——公网部署并替换为真实订单/客服系统前，必须补齐：用户认证、订单所有权校验、退款权限、请求频率限制与审计日志，且不要将模拟订单数据用于真实业务。

@@ -17,6 +17,9 @@ from commerce_api import (
 )
 from ticket import create_ticket
 
+# 演示环境诚实标注：所有"转人工/退款受理"均为模拟业务，不产生真实操作
+_MOCK_NOTICE = "（演示环境 · 模拟受理，不会产生真实业务操作）"
+
 
 # 高敏感 / 升级人工（命中任一直接转人工 + P0 工单）
 ESCALATION_TERMS = (
@@ -316,7 +319,7 @@ def answer_message_rule_based(
             ticket["priority"] = "P0-紧急"
             return {
                 "intent": "ESCALATE",
-                "answer": _fallback_reply(message),
+                "answer": _fallback_reply(message) + _MOCK_NOTICE,
                 "tool_result": escalate_to_human(reason=message[:60], platform=platform),
                 "sources": [],
                 "ticket": ticket,
@@ -330,9 +333,8 @@ def answer_message_rule_based(
         return {
             "intent": "ESCALATE",
             "answer": (
-                "非常抱歉给您带来不好的体验。我已为您转接人工客服主管，"
-                "并同步生成紧急工单。工作时间 10 分钟内将有专人电话回访；"
-                "非工作时间将在次日 10 点前联系您。"
+                "非常抱歉给您带来不好的体验。已为您生成人工跟进工单并记录在案"
+                "（演示环境：模拟转接，不会产生真实回访）。"
             ),
             "tool_result": result,
             "sources": [],
@@ -367,7 +369,7 @@ def answer_message_rule_based(
             "intent": "REFUND",
             "answer": (
                 f"已为订单 {order_id} 提交退款申请，金额 ¥{refund['amount']:.2f}。\n"
-                f"{refund['estimated_next_step']}"
+                f"{refund['estimated_next_step']}\n{_MOCK_NOTICE}"
             ),
             "tool_result": refund,
             "sources": [],
@@ -410,7 +412,7 @@ def answer_message_rule_based(
     }
     # RAG 未命中 → 按情绪匹配兜底话术 + 自动建工单转人工
     if not rag.get("matched", True):
-        out["answer"] = _fallback_reply(message)
+        out["answer"] = _fallback_reply(message) + _MOCK_NOTICE
         out["ticket"] = create_ticket(message)
     else:
         # RAG 命中但问题属于售后/履约类（非纯售前咨询），自动建工单让人工跟进

@@ -327,6 +327,7 @@ def request_refund(order_id: str, reason: str) -> dict:
     # 模拟写库：在这个 mock 里我们返回一条已受理的记录，不真改 frozen dataclass
     return {
         "ok": True,
+        "mock": True,  # 演示环境：仅生成受理记录，订单状态不会真实变更
         "order_id": order.order_id,
         "status": "reviewing",
         "reason": reason,
@@ -339,6 +340,7 @@ def escalate_to_human(reason: str, platform: str = "novatech") -> dict:
     return {
         "platform": platform,
         "escalated": True,
+        "mock": True,  # 演示环境：仅返回模拟转人工记录，无真实客服队列/通知
         "reason": reason or "customer_support_review",
-        "next_step": "已为您转接人工客服（工作时间 9:00-21:00），非工作时间将在次日 10 点前回访。",
+        "next_step": "演示环境：已生成模拟人工跟进记录，不会产生真实回访；正式上线需接入真实客服队列与通知。",
     }

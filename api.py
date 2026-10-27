@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional
 from uuid import uuid4
+import os
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,9 +17,18 @@ from llm_provider import describe as describe_llm
 
 
 app = FastAPI(title="AI Customer Service Platform", version="1.0.0")
+
+# CORS 默认只放行本地前端来源；公网部署请通过环境变量 CORS_ALLOW_ORIGINS 显式指定来源，
+# 并在网关层补齐身份认证、请求限流与审计日志后再对外开放。
+_DEFAULT_CORS_ORIGINS = "http://localhost:8010,http://127.0.0.1:8010"
+_cors_origins = [
+    o.strip()
+    for o in os.getenv("CORS_ALLOW_ORIGINS", _DEFAULT_CORS_ORIGINS).split(",")
+    if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 作品集演示：允许任意来源访问
+    allow_origins=_cors_origins,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

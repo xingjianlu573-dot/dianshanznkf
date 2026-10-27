@@ -58,6 +58,11 @@ body {
 }
 .chat-header h1 { font-size: 17px; font-weight: 600; }
 .chat-header .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.demo-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  background: rgba(245,158,11,.12); color: #fbbf24; font-size: 11px;
+  border: 1px solid rgba(245,158,11,.35); white-space: nowrap;
+}
 .header-stats { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
 .showcase-btn {
   display: inline-flex; align-items: center; gap: 6px;
