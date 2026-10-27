@@ -1,5 +1,7 @@
 # AI Customer Service Platform
 
+> 🛡️ 2026-10-27 安全与演示边界修复：会话隔离（ECOM-01）、可选模型依赖（ECOM-02）、CORS 白名单化 + 演示数据声明（ECOM-03）、mock 回执诚实标注（ECOM-04），全部含回归测试。
+
 > 企业级电商智能客服 Agent・基于 RAG + Function Calling + Workflow 编排
 > 改造自开源项目
 >
